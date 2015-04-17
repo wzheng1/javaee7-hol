@@ -1,255 +1,260 @@
 {
-  "metadata":{
-    "name": "jee-sample",
-  },
-  "kind": "Template",
-  "apiVersion": "v1beta1",
-  "description": "This example shows how to create a simple jee application in openshift origin v3",
-  "parameters": [
-    {
-      "name": "MYSQL_USER",
-      "description": "administrator username",
-      "value": "mysql"
-    },
-    {
-      "name": "MYSQL_PASSWORD",
-      "description": "administrator password",
-      "value": "mysql"
-    },
-    {
-      "name": "MYSQL_ROOT_PASSWORD",
-      "description": "database password",
-      "value": "supersecret"
-    },
-    {
-      "name": "MYSQL_DATABASE",
-      "description": "database name",
-      "value": "sample"
-    }
-  ],
-  "items": [
-    {
-      "id": "frontend",
-      "kind": "Service",
-      "apiVersion": "v1beta1",
-      "port": 8080,
-      "containerPort": 8080,
-      "selector": {
-        "name": "frontend"
-      }
-    },
-    {
-      "metadata":{
-        "name": "origin-jee-sample",
-      },
-      "kind": "ImageRepository",
-      "apiVersion": "v1beta1",
-    },
-    {
-      "metadata":{
-        "name": "wildfly-8-centos",
-      },
-      "kind": "ImageRepository",
-      "apiVersion": "v1beta1",
-    },
-    {
-      "metadata":{
-        "name": "jee-sample-build",
-      },
-      "kind": "BuildConfig",
-      "apiVersion": "v1beta1",
-      "triggers": [
+    "apiVersion": "v1beta1",
+    "description": "This example shows how to create a simple jee application in openshift origin v3",
+    "items": [
         {
-          "type": "github",
-          "github": {
-            "secret": "secret101"
-          }
-        },
-        {
-          "type": "generic",
-          "generic": {
-            "secret": "secret101"
-          }
-        },
-        {
-          "type": "imageChange",
-          "imageChange": {
-            "image": "openshift/wildfly-8-centos",
-            "from": { "name": "wildfly-8-centos"},
-            "tag":"latest"
-          }
-        }
-      ],
-      "parameters": {
-        "source" : {
-          "type" : "Git",
-          "git" : {
-            "uri": "git://github.com/bparees/javaee7-hol.git"
-          }
-        },
-        "strategy": {
-          "type": "STI",
-          "stiStrategy": {
-            "image": "openshift/wildfly-8-centos",
-          }
-        },
-        "output": {
-          "to": {
-            "name": "origin-jee-sample"
-          }
-        },
-      },
-      "labels": {
-        "name": "jee-sample-build"
-      }
-    },
-    {
-      "metadata":{
-        "name": "frontend",
-      },
-      "kind": "DeploymentConfig",
-      "apiVersion": "v1beta1",
-      "triggers": [
-        {
-          "type": "ImageChange",
-          "imageChangeParams": {
-            "automatic": true,
-            "containerNames": [
-              "jee-sample"
-            ],
-            "from": {
-              "name": "origin-jee-sample"
-            },
-            "tag": "latest"
-          }
-        }
-      ],
-      "template": {
-        "strategy": {
-          "type":"Recreate"
-        },
-        "controllerTemplate": {
-          "replicas": 1,
-          "replicaSelector": {
-            "name": "frontend"
-          },
-          "podTemplate": {
-            "desiredState": {
-              "manifest": {
-                "version": "v1beta1",
-                "containers": [
-                  {
-                    "name": "jee-sample",
-                    "image": "origin-jee-sample",
-                    "env": [
-                      {
-                        "name": "MYSQL_USER",
-                        "value": "${MYSQL_USER}"
-                      },
-                      {
-                        "name": "MYSQL_PASSWORD",
-                        "value": "${MYSQL_PASSWORD}"
-                      },
-                      {
-                        "name": "MYSQL_ROOT_PASSWORD",
-                        "value": "${MYSQL_ROOT_PASSWORD}"
-                      },
-                      {
-                        "name": "MYSQL_DATABASE",
-                        "value": "${MYSQL_DATABASE}"
-                      },
-                      {
-                        "name": "MYSQL_DB_NAME",
-                        "value": "${MYSQL_DATABASE}"
-                      }
-                    ],
-                    "ports": [
-                      {
-                        "containerPort": 8080
-                      }
-                    ]
-                  }
-                ]
-              }
-            },
-            "labels": {
-              "name": "frontend"
+            "apiVersion": "v1beta1",
+            "containerPort": 8080,
+            "id": "frontend",
+            "kind": "Service",
+            "port": 8080,
+            "selector": {
+                "name": "frontend"
             }
-          }
-        }
-      }
-    },
-    {
-      "id": "mysql",
-      "kind": "Service",
-      "apiVersion": "v1beta1",
-      "port": 3306,
-      "containerPort": 3306,
-      "selector": {
-        "name": "database"
-      }
-    },
-    {
-      "metadata":{
-        "name": "database",
-      },
-      "kind": "DeploymentConfig",
-      "apiVersion": "v1beta1",
-      "triggers": [
+        },
         {
-          "type": "ConfigChange"
-        }
-      ],
-      "template": {
-        "strategy": {
-          "type":"Recreate"
+            "apiVersion": "v1beta1",
+            "kind": "ImageStream",
+            "metadata": {
+                "name": "origin-jee-sample"
+            }
         },
-        "controllerTemplate": {
-          "replicas": 1,
-          "replicaSelector": {
-            "name": "database"
+        {
+            "apiVersion": "v1beta1",
+            "kind": "ImageStream",
+            "metadata": {
+                "name": "wildfly-8-centos"
+            },
+            "spec": {
+                "dockerImageRepository": "openshift/wildfly-8-centos"
+            }
         },
-        "podTemplate": {
-          "desiredState": {
-            "manifest": {
-              "version": "v1beta1",
-              "containers": [
+        {
+            "apiVersion": "v1beta1",
+            "kind": "BuildConfig",
+            "labels": {
+                "name": "jee-sample-build"
+            },
+            "metadata": {
+                "name": "jee-sample-build"
+            },
+            "parameters": {
+                "output": {
+                    "to": {
+                        "name": "origin-jee-sample"
+                    }
+                },
+                "source": {
+                    "git": {
+                        "uri": "git://github.com/bparees/javaee7-hol.git"
+                    },
+                    "type": "Git"
+                },
+                "strategy": {
+                    "stiStrategy": {
+                        "image": "openshift/wildfly-8-centos"
+                    },
+                    "type": "STI"
+                }
+            },
+            "triggers": [
                 {
-                   "name": "jee-database",
-                   "image": "mysql",
-                    "env": [
-                      {
-                        "name": "MYSQL_USER",
-                        "value": "${MYSQL_USER}"
-                      },
-                      {
-                        "name": "MYSQL_PASSWORD",
-                        "value": "${MYSQL_PASSWORD}"
-                      },
-                      {
-                        "name": "MYSQL_ROOT_PASSWORD",
-                        "value": "${MYSQL_ROOT_PASSWORD}"
-                      },
-                      {
-                        "name": "MYSQL_DATABASE",
-                        "value": "${MYSQL_DATABASE}"
-                      }
-                    ],
-                    "ports": [
-                      {
-                        "containerPort": 3306
-                      }
-                    ]
-                  }
-                ]
-              }
+                    "github": {
+                        "secret": "secret101"
+                    },
+                    "type": "github"
+                },
+                {
+                    "generic": {
+                        "secret": "secret101"
+                    },
+                    "type": "generic"
+                },
+                {
+                    "imageChange": {
+                        "from": {
+                            "name": "wildfly-8-centos"
+                        },
+                        "image": "openshift/wildfly-8-centos",
+                        "tag": "latest"
+                    },
+                    "type": "imageChange"
+                }
+            ]
+        },
+        {
+            "apiVersion": "v1beta1",
+            "kind": "DeploymentConfig",
+            "metadata": {
+                "name": "frontend"
             },
-            "labels": {
-              "name": "database"
+            "template": {
+                "controllerTemplate": {
+                    "podTemplate": {
+                        "desiredState": {
+                            "manifest": {
+                                "containers": [
+                                    {
+                                        "env": [
+                                            {
+                                                "name": "MYSQL_USER",
+                                                "value": "${MYSQL_USER}"
+                                            },
+                                            {
+                                                "name": "MYSQL_PASSWORD",
+                                                "value": "${MYSQL_PASSWORD}"
+                                            },
+                                            {
+                                                "name": "MYSQL_ROOT_PASSWORD",
+                                                "value": "${MYSQL_ROOT_PASSWORD}"
+                                            },
+                                            {
+                                                "name": "MYSQL_DATABASE",
+                                                "value": "${MYSQL_DATABASE}"
+                                            },
+                                            {
+                                                "name": "MYSQL_DB_NAME",
+                                                "value": "${MYSQL_DATABASE}"
+                                            }
+                                        ],
+                                        "image": "origin-jee-sample",
+                                        "name": "jee-sample",
+                                        "ports": [
+                                            {
+                                                "containerPort": 8080
+                                            }
+                                        ]
+                                    }
+                                ],
+                                "version": "v1beta1"
+                            }
+                        },
+                        "labels": {
+                            "name": "frontend"
+                        }
+                    },
+                    "replicaSelector": {
+                        "name": "frontend"
+                    },
+                    "replicas": 1
+                },
+                "strategy": {
+                    "type": "Recreate"
+                }
+            },
+            "triggers": [
+                {
+                    "imageChangeParams": {
+                        "automatic": true,
+                        "containerNames": [
+                            "jee-sample"
+                        ],
+                        "from": {
+                            "name": "origin-jee-sample"
+                        },
+                        "tag": "latest"
+                    },
+                    "type": "ImageChange"
+                }
+            ]
+        },
+        {
+            "apiVersion": "v1beta1",
+            "containerPort": 3306,
+            "id": "mysql",
+            "kind": "Service",
+            "port": 3306,
+            "selector": {
+                "name": "database"
             }
-          }
+        },
+        {
+            "apiVersion": "v1beta1",
+            "kind": "DeploymentConfig",
+            "metadata": {
+                "name": "database"
+            },
+            "template": {
+                "controllerTemplate": {
+                    "podTemplate": {
+                        "desiredState": {
+                            "manifest": {
+                                "containers": [
+                                    {
+                                        "env": [
+                                            {
+                                                "name": "MYSQL_USER",
+                                                "value": "${MYSQL_USER}"
+                                            },
+                                            {
+                                                "name": "MYSQL_PASSWORD",
+                                                "value": "${MYSQL_PASSWORD}"
+                                            },
+                                            {
+                                                "name": "MYSQL_ROOT_PASSWORD",
+                                                "value": "${MYSQL_ROOT_PASSWORD}"
+                                            },
+                                            {
+                                                "name": "MYSQL_DATABASE",
+                                                "value": "${MYSQL_DATABASE}"
+                                            }
+                                        ],
+                                        "image": "mysql",
+                                        "name": "jee-database",
+                                        "ports": [
+                                            {
+                                                "containerPort": 3306
+                                            }
+                                        ]
+                                    }
+                                ],
+                                "version": "v1beta1"
+                            }
+                        },
+                        "labels": {
+                            "name": "database"
+                        }
+                    },
+                    "replicaSelector": {
+                        "name": "database"
+                    },
+                    "replicas": 1
+                },
+                "strategy": {
+                    "type": "Recreate"
+                }
+            },
+            "triggers": [
+                {
+                    "type": "ConfigChange"
+                }
+            ]
         }
-      }
-    }
-  ]
+    ],
+    "kind": "Template",
+    "metadata": {
+        "name": "jee-sample"
+    },
+    "parameters": [
+        {
+            "description": "administrator username",
+            "name": "MYSQL_USER",
+            "value": "mysql"
+        },
+        {
+            "description": "administrator password",
+            "name": "MYSQL_PASSWORD",
+            "value": "mysql"
+        },
+        {
+            "description": "database password",
+            "name": "MYSQL_ROOT_PASSWORD",
+            "value": "supersecret"
+        },
+        {
+            "description": "database name",
+            "name": "MYSQL_DATABASE",
+            "value": "sample"
+        }
+    ]
 }
