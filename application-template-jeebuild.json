@@ -238,7 +238,7 @@
       "kind": "Service",
       "apiVersion": "v1",
       "metadata": {
-        "name": "database",
+        "name": "mysql",
         "creationTimestamp": null
       },
       "spec": {
@@ -252,7 +252,7 @@
           }
         ],
         "selector": {
-          "name": "database"
+          "name": "mysql"
         },
         "portalIP": "",
         "type": "ClusterIP",
@@ -263,7 +263,7 @@
       "kind": "DeploymentConfig",
       "apiVersion": "v1",
       "metadata": {
-        "name": "database",
+        "name": "mysql",
         "creationTimestamp": null
       },
       "spec": {
@@ -280,19 +280,19 @@
         ],
         "replicas": 1,
         "selector": {
-          "name": "database"
+          "name": "mysql"
         },
         "template": {
           "metadata": {
             "creationTimestamp": null,
             "labels": {
-              "name": "database"
+              "name": "mysql"
             }
           },
           "spec": {
             "containers": [
               {
-                "name": "jee-database",
+                "name": "mysql",
                 "image": "openshift/mysql-55-centos7:latest",
                 "ports": [
                   {
